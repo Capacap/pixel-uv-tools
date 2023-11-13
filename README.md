@@ -76,3 +76,8 @@ The reccommended workflow is as follows:
 2. Run 'Pack Islands Pixel Margin' to pack your uv islands.
 3. Run 'Snap UV Island Bounds to Pixels' to make your uv islands align nicely to the pixel grid.
 4. On hard-surface models run 'Snap UVs to Pixels', consider running this operator at double the texture size to preserve smaller uvs that would otherwise get squished.
+
+---
+
+![pixel-uv-tools-example01](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example01.png)
+![pixel-uv-tools-example02](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example02.png)
