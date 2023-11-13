@@ -1,4 +1,4 @@
-# pixel-uv-tools
+# Pixel UV Tools for Blender
 Tools for creating pixel-perfect UVs in Blender
 
 ## W.I.P
