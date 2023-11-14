@@ -74,7 +74,15 @@ def main(context, mode):
                     best = faces[i] 
             
             # Only proceed if at least one quad exists
-            if best is not None:       
+            if best is not None:     
+                
+                # Centroid
+                loops = [l for f in faces for l in f.loops]
+                sum_x = sum([l[uv_layer].uv.x for l in loops])
+                sum_y = sum([l[uv_layer].uv.y for l in loops])
+                n = len(loops)
+                centroid = Vector((sum_x/n,sum_y/n))
+                  
                 # Calculate the distance between each sides uvs
                 uv_sides = []
                 for l in best.loops:
@@ -97,6 +105,17 @@ def main(context, mode):
                 
                 # Preform the Follow Active Quads operation
                 bpy.ops.uv.follow_active_quads(mode=mode)
+                
+                # New Centroid
+                loops = [l for f in faces for l in f.loops]
+                sum_x = sum([l[uv_layer].uv.x for l in loops])
+                sum_y = sum([l[uv_layer].uv.y for l in loops])
+                n = len(loops)
+                new_centroid = Vector((sum_x/n,sum_y/n))
+                
+                # Move the new centroid to the original centroid
+                for l in loops:
+                    l[uv_layer].uv += centroid - new_centroid
             
             # Hide the UV island so that its faces does not get processed again
             bpy.ops.mesh.hide(unselected=False)
