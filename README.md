@@ -1,9 +1,6 @@
 # Pixel UV Tools for Blender
 Tools for creating pixel-perfect UVs in Blender
 
-## W.I.P
-Add-on is operational but documentation is in progress.
-
 ## Move UVs by Pixels
 Moves the UVs of selected faces by a given amount of pixels.
 
