@@ -29,9 +29,11 @@ Snaps the corners of each selected UV island's bounding box to the nearest pixel
 - **Texture Size** - The width and height of the texture. Defaults to 256.
 
 ## Smart Follow Quads
-Automatically preforms a "Follow Active Quads" operation on each selected UV island, using the most suitable quad of each island.
+Automatically finds the most suitable quad of each selected uv island, makes it perfectly even and preforms a 'Follow Active Quads' operation using the even face as the target.
 
 - **Edge Length Mode** - The edge-length mode of the Follow Active Quads operation. Defaults to 'Even'.
+
+![pixel-uv-tools-example01.png](https://github.com/Capacap/pixel-uv-tools/blob/main/smart_follow_quads_demo.png)
 
 ## Pack Islands Pixel Margin
 Preforms a "Pack Islands" operation on the UVs of selected faces where the margin is specified in pixels.
