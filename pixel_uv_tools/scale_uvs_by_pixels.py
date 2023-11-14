@@ -79,7 +79,7 @@ class ScaleUVsByPixelsOperator(bpy.types.Operator):
     bl_label = "Scale UVs by Pixels"
     bl_options = {'REGISTER', 'UNDO'}
     
-    resolution: bpy.props.IntProperty(name="Texture Size", description="Size of target target texture", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     dx: bpy.props.IntProperty(name="Delta X", description="Pixels on the x-axis", default=1)
     dy: bpy.props.IntProperty(name="Delta Y", description="Pixels on the y-axis", default=1)
     

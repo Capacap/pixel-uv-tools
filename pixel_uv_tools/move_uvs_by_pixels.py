@@ -43,7 +43,7 @@ class MoveUVsByPixelsOperator(bpy.types.Operator):
     bl_label = "Move UVs by Pixels"
     bl_options = {'REGISTER', 'UNDO'}
     
-    resolution: bpy.props.IntProperty(name="Texture Size", description="Size of target target texture", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     dx: bpy.props.IntProperty(name="Delta X", default=0)
     dy: bpy.props.IntProperty(name="Delta Y", default=0)
     

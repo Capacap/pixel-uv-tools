@@ -45,7 +45,7 @@ class SnapUVsToPixelsOperator(bpy.types.Operator):
     bl_label = "Snap UVs to Pixels"
     bl_options = {'REGISTER', 'UNDO'}
     
-    resolution: bpy.props.IntProperty(name="Texture Size", description="Size of target target texture", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     
     @classmethod
     def poll(cls, context):

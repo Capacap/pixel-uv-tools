@@ -6,8 +6,8 @@ class PackIslandsPixelMarginOperator(bpy.types.Operator):
     bl_label = "Pack Islands Pixel Margin"
     bl_options = {'REGISTER', 'UNDO'}
     
-    resolution: bpy.props.IntProperty(name="Texture Size", description="Size of target target texture", default=256)
-    margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2)
+    resolution: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
+    margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2, min=0)
     udim_source: bpy.props.EnumProperty(items=[
     ('CLOSEST_UDIM', 'Closest UDIM', 'Pack islands to closest UDIM'), 
     ('ACTIVE_UDIM', 'Active UDIM', 'Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located'), 
