@@ -23,6 +23,7 @@ if "bpy" in locals():
 
     importlib.reload(pixel_unwrap_active_edge)
     importlib.reload(pixel_unwrap_centerline)
+    importlib.reload(pixel_smart_follow_quads)
 else:
     import bpy
     from . import pixel_move_uvs
@@ -35,6 +36,7 @@ else:
 
     from . import pixel_unwrap_active_edge
     from . import pixel_unwrap_centerline
+    from . import pixel_smart_follow_quads
 
 import bpy
 
@@ -58,6 +60,7 @@ class UV_MT_pixel_uv_tools(bpy.types.Menu):
 
         layout.operator(pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_idname, text=pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_label)
         layout.operator(pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_idname, text=pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_label)
+        layout.operator(pixel_smart_follow_quads.PixelSmartFollowQuadsOperator.bl_idname, text=pixel_smart_follow_quads.PixelSmartFollowQuadsOperator.bl_label)
 
 
 classes = [
@@ -70,6 +73,7 @@ classes = [
     pixel_pack_islands.PixelPackIslandsOperator,
     pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator,
     pixel_unwrap_centerline.PixelUnwrapCenterlineOperator,
+    pixel_smart_follow_quads.PixelSmartFollowQuadsOperator,
     UV_MT_pixel_uv_tools,
 ]
 

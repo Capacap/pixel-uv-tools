@@ -77,6 +77,15 @@ Pins vertices on the `X = 0` plane to a vertical line in UV space, runs an angle
 - *Shape Method*: shape metric used by the packing step. Default Bounding Box.
 - *Centerline Adjustment*: `Pixel Corner` places the centerline on a texel boundary, `Pixel Center` offsets by half a pixel so the centerline runs through texel centers. Default Pixel Corner.
 
+**Pixel Smart Follow Quads**
+
+For each UV island, picks the quad whose 3D shape is closest to a regular rectangle, rebuilds it as a rectangle whose side lengths are rounded to an integer pixel count, then runs Follow Active Quads from that seed. The island is translated so the seed quad's anchor corner lands on a pixel corner, which keeps the full quad grid aligned to the pixel grid. Useful for gridded surfaces (tiled floors, machinery panels) where Follow Active Quads already gives a clean layout but you want the cells to match texel boundaries.
+
+- *Texture Size*: default 256.
+- *Edge Length Mode*: forwarded to Follow Active Quads. `Even` spaces all edges equally, `Length` and `Length Average` weight by 3D edge length. Default Even.
+
+![smart follow quads](https://github.com/Capacap/pixel-uv-tools/blob/main/smart_follow_quads_demo.png)
+
 ### Utility operators
 
 **Pixel Move Islands** and **Pixel Scale Islands** are registered but not shown in the UV menu. They are used internally by Pixel Pack Islands and can be invoked by name through `F3` search if you need them directly.
