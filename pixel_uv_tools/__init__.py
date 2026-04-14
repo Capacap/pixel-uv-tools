@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Pixel UV Tools",
     "author": "Simon Sorkin",
-    "version": (1, 0),
+    "version": (2, 0),
     "blender": (2, 80, 0),
     "location": "Edit Mode > UV and UV Editor > UV",
     "description": "Tools for creating pixel-perfect UVs.",
@@ -13,89 +13,86 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(move_uvs_by_pixels)
-    importlib.reload(scale_uvs_by_pixels)
-    importlib.reload(snap_uvs_to_pixels)
-    importlib.reload(snap_uv_island_bounds_to_pixels)
-    importlib.reload(pack_islands_pixel_margin)
-    importlib.reload(smart_follow_quads)
-    importlib.reload(regular_polygon_projection)
+    importlib.reload(pixel_move_uvs)
+    importlib.reload(pixel_scale_uvs)
+    importlib.reload(pixel_snap_uvs)
+    importlib.reload(pixel_move_islands)
+    importlib.reload(pixel_scale_islands)
+    importlib.reload(pixel_snap_islands)
+    importlib.reload(pixel_pack_islands)
+
+    importlib.reload(pixel_unwrap_active_edge)
+    importlib.reload(pixel_unwrap_centerline)
 else:
     import bpy
-    from . import move_uvs_by_pixels
-    from . import scale_uvs_by_pixels
-    from . import snap_uvs_to_pixels
-    from . import snap_uv_island_bounds_to_pixels
-    from . import pack_islands_pixel_margin
-    from . import smart_follow_quads
-    from . import regular_polygon_projection
+    from . import pixel_move_uvs
+    from . import pixel_scale_uvs
+    from . import pixel_snap_uvs
+    from . import pixel_move_islands
+    from . import pixel_scale_islands
+    from . import pixel_snap_islands
+    from . import pixel_pack_islands
 
+    from . import pixel_unwrap_active_edge
+    from . import pixel_unwrap_centerline
 
 import bpy
 
 
+class UV_MT_pixel_uv_tools(bpy.types.Menu):
+    bl_idname = "UV_MT_pixel_uv_tools"
+    bl_label = "Pixel UV Tools"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = "INVOKE_DEFAULT"
+
+        layout.operator(pixel_move_uvs.PixelMoveUvsOperator.bl_idname, text=pixel_move_uvs.PixelMoveUvsOperator.bl_label)
+        layout.operator(pixel_scale_uvs.PixelScaleUvsOperator.bl_idname, text=pixel_scale_uvs.PixelScaleUvsOperator.bl_label)
+        layout.separator()
+
+        layout.operator(pixel_snap_uvs.PixelSnapUvsOperator.bl_idname, text=pixel_snap_uvs.PixelSnapUvsOperator.bl_label)
+        layout.operator(pixel_snap_islands.PixelSnapIslandsOperator.bl_idname, text=pixel_snap_islands.PixelSnapIslandsOperator.bl_label)
+        layout.operator(pixel_pack_islands.PixelPackIslandsOperator.bl_idname, text=pixel_pack_islands.PixelPackIslandsOperator.bl_label)
+        layout.separator()
+
+        layout.operator(pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_idname, text=pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_label)
+        layout.operator(pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_idname, text=pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_label)
+
+
 classes = [
-    move_uvs_by_pixels.MoveUVsByPixelsOperator,
-    scale_uvs_by_pixels.ScaleUVsByPixelsOperator,
-    snap_uvs_to_pixels.SnapUVsToPixelsOperator,
-    snap_uv_island_bounds_to_pixels.SnapUvIslandBoundsToPixelsOperator,
-    pack_islands_pixel_margin.PackIslandsPixelMarginOperator,
-    smart_follow_quads.SmartFollowQuadsOperator,
-    regular_polygon_projection.RegularPolygonProjectOperator
+    pixel_move_uvs.PixelMoveUvsOperator,
+    pixel_scale_uvs.PixelScaleUvsOperator,
+    pixel_snap_uvs.PixelSnapUvsOperator,
+    pixel_move_islands.PixelMoveIslandsOperator,
+    pixel_scale_islands.PixelScaleIslandsOperator,
+    pixel_snap_islands.PixelSnapIslandsOperator,
+    pixel_pack_islands.PixelPackIslandsOperator,
+    pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator,
+    pixel_unwrap_centerline.PixelUnwrapCenterlineOperator,
+    UV_MT_pixel_uv_tools,
 ]
 
 
-def viewport_menu(self, context):
-    layout = self.layout
-    layout.operator_context = "INVOKE_DEFAULT"
-    layout.separator()
-    
-    layout.operator(move_uvs_by_pixels.MoveUVsByPixelsOperator.bl_idname, text=move_uvs_by_pixels.MoveUVsByPixelsOperator.bl_label)
-    layout.operator(scale_uvs_by_pixels.ScaleUVsByPixelsOperator.bl_idname, text=scale_uvs_by_pixels.ScaleUVsByPixelsOperator.bl_label)
-    layout.separator()
-
-    layout.operator(snap_uvs_to_pixels.SnapUVsToPixelsOperator.bl_idname, text=snap_uvs_to_pixels.SnapUVsToPixelsOperator.bl_label)
-    layout.operator(snap_uv_island_bounds_to_pixels.SnapUvIslandBoundsToPixelsOperator.bl_idname, text=snap_uv_island_bounds_to_pixels.SnapUvIslandBoundsToPixelsOperator.bl_label)
-    layout.separator()
-
-    layout.operator(smart_follow_quads.SmartFollowQuadsOperator.bl_idname, text=smart_follow_quads.SmartFollowQuadsOperator.bl_label)
-    layout.operator(pack_islands_pixel_margin.PackIslandsPixelMarginOperator.bl_idname, text=pack_islands_pixel_margin.PackIslandsPixelMarginOperator.bl_label)
-    layout.separator()
-
-    layout.operator(regular_polygon_projection.RegularPolygonProjectOperator.bl_idname, text=regular_polygon_projection.RegularPolygonProjectOperator.bl_label)
-
-
-def image_menu(self, context):
-    layout = self.layout
-    layout.operator_context = "INVOKE_DEFAULT"
-    layout.separator()
-    
-    layout.operator(move_uvs_by_pixels.MoveUVsByPixelsOperator.bl_idname, text=move_uvs_by_pixels.MoveUVsByPixelsOperator.bl_label)
-    layout.operator(scale_uvs_by_pixels.ScaleUVsByPixelsOperator.bl_idname, text=scale_uvs_by_pixels.ScaleUVsByPixelsOperator.bl_label)
-    layout.separator()
-    
-    layout.operator(snap_uvs_to_pixels.SnapUVsToPixelsOperator.bl_idname, text=snap_uvs_to_pixels.SnapUVsToPixelsOperator.bl_label)
-    layout.operator(snap_uv_island_bounds_to_pixels.SnapUvIslandBoundsToPixelsOperator.bl_idname, text=snap_uv_island_bounds_to_pixels.SnapUvIslandBoundsToPixelsOperator.bl_label)
-    layout.separator()
-
-    layout.operator(smart_follow_quads.SmartFollowQuadsOperator.bl_idname, text=smart_follow_quads.SmartFollowQuadsOperator.bl_label)
-    layout.operator(pack_islands_pixel_margin.PackIslandsPixelMarginOperator.bl_idname, text=pack_islands_pixel_margin.PackIslandsPixelMarginOperator.bl_label)
+def draw_submenu(self, context):
+    self.layout.separator()
+    self.layout.menu(UV_MT_pixel_uv_tools.bl_idname)
 
 
 def register():
     for c in classes:
         bpy.utils.register_class(c)
 
-    bpy.types.VIEW3D_MT_uv_map.append(viewport_menu)
-    bpy.types.IMAGE_MT_uvs.append(image_menu)
+    bpy.types.VIEW3D_MT_uv_map.append(draw_submenu)
+    bpy.types.IMAGE_MT_uvs.append(draw_submenu)
 
 
 def unregister():
     for c in classes:
         bpy.utils.unregister_class(c)
 
-    bpy.types.VIEW3D_MT_uv_map.remove(viewport_menu)
-    bpy.types.IMAGE_MT_uvs.remove(image_menu)
+    bpy.types.VIEW3D_MT_uv_map.remove(draw_submenu)
+    bpy.types.IMAGE_MT_uvs.remove(draw_submenu)
 
 
 if __name__ == "__main__":

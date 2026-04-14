@@ -1,0 +1,105 @@
+import bpy
+import bmesh
+from mathutils import Vector, Matrix
+
+
+def get_uv_islands(bm, uv_layer, only_selected):
+    """Returns a list of lists where each list contains the indices of the BMFaces that make up a uv island"""
+    faces = [f for f in bm.faces if f.select] if only_selected else bm.faces
+
+    uv_vert_to_faces = {}
+    for l in [l for f in faces for l in f.loops]:
+        vert = (l[uv_layer].uv.to_tuple(5), l.vert.index)
+        if vert not in uv_vert_to_faces:
+            uv_vert_to_faces[vert] = [l.face.index]
+        else:
+            uv_vert_to_faces[vert].append(l.face.index)
+
+    islands = []
+    explored = []
+    for f in faces:
+        if f.index not in explored:
+            island = [f.index]
+            frontier = [f.index]
+            while frontier:
+                current = bm.faces[frontier.pop()]
+                for l in current.loops:
+                    vert = (l[uv_layer].uv.to_tuple(5), l.vert.index)
+                    for neighbour in uv_vert_to_faces[vert]:
+                        if neighbour != current and neighbour not in island:
+                            island.append(neighbour)
+                            frontier.append(neighbour)
+            islands.append(island)
+            explored.extend(island)
+
+    return islands
+
+
+def move_island_to_pixels(bm, uv_layer, island, resolution):
+    """Moves the minimum point of the islands bounding box to the nearest pixel corner"""
+    faces = [bm.faces[i] for i in island]
+
+    min_x = 1.0
+    min_y = 1.0
+    for f in faces:
+        for l in f.loops:
+            uv = l[uv_layer].uv
+            min_x = min(min_x, uv.x)
+            min_y = min(min_y, uv.y)
+
+    min_x_rounded = round(min_x / (1.0 / resolution)) * (1.0 / resolution)
+    min_y_rounded = round(min_y / (1.0 / resolution)) * (1.0 / resolution)
+
+    delta_x = min_x_rounded - min_x
+    delta_y = min_y_rounded - min_y
+    translation = Matrix.LocRotScale(Vector((delta_x, delta_y, 0.0)), None, Vector((1.0, 1.0, 1.0)))
+
+    for f in faces:
+        for l in f.loops:
+            xyz = translation @ l[uv_layer].uv.to_3d()
+            l[uv_layer].uv = xyz.xy
+
+
+def main(context, resolution):
+    ob = context.edit_object
+    me = ob.data
+
+    # Force face select mode for consistent behavior across selection modes
+    original_select_mode = tuple(context.tool_settings.mesh_select_mode)
+    bpy.ops.mesh.select_mode(type='FACE')
+
+    bm = bmesh.from_edit_mesh(me)
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    uv_layer = bm.loops.layers.uv.verify()
+
+    islands = get_uv_islands(bm, uv_layer, True)
+
+    for island in islands:
+        move_island_to_pixels(bm, uv_layer, island, resolution)
+
+    bmesh.update_edit_mesh(me)
+
+    # Restore the user's original selection mode
+    context.tool_settings.mesh_select_mode = original_select_mode
+
+    bm.free()
+
+
+class PixelMoveIslandsOperator(bpy.types.Operator):
+    """Moves each UV island so that its minimum bounding box corner snaps to the nearest pixel corner"""
+    bl_idname = "uv.pixel_move_islands"
+    bl_label = "Pixel Move Islands"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    resolution: bpy.props.IntProperty(name="Texture Resolution", default=256)
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj and obj.type == 'MESH' and obj.mode == 'EDIT'
+
+    def execute(self, context):
+        main(context, self.resolution)
+        return {'FINISHED'}

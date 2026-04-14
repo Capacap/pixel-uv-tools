@@ -1,67 +1,87 @@
 # Pixel UV Tools for Blender
-Tools for creating pixel-perfect UVs in Blender
 
-## Move UVs by Pixels
-Moves the UVs of selected faces by a given amount of pixels.
+A Blender addon for pixel-perfect UV editing. Every operator is reachable from the 3D Viewport's UV menu, so packing, snapping, and unwrapping pixel-aligned UVs never requires opening the UV editor. The same operators are also available from the UV Editor.
 
-- **Texture Size** - The width and height of the texture. Defaults to 256.
-- **Delta X** - The amount of pixels to move by on the x-axis. Defaults to 0.
-- **Delta Y** - The amount of pixels to move by on the y-axis. Defaults to 0.
+## Installation
 
-## Scale UVs by Pixels
-Scales the UVs of selected faces by a given amount of pixels.
+1. Download this repository as a zip, or clone it and zip the `pixel_uv_tools` folder.
+2. In Blender, open `Edit > Preferences > Add-ons > Install from Disk...` and select the zip.
+3. Enable *Pixel UV Tools* in the add-on list.
 
-- **Texture Size** - The width and height of the texture. Defaults to 256.
-- **Delta X** - The amount of pixels to scale by on the x-axis. Defaults to 0.
-- **Delta Y** - The amount of pixels to scale by on the y-axis. Defaults to 0.
+Operators appear under `UV > Pixel UV Tools` in both the 3D Viewport (Edit Mode, `U`) and the UV Editor.
 
-## Snap UVs to Pixels
-Snaps the UVs of selected faces to the nearest pixel-corners.
+## Recommended workflow
 
-- **Texture Size** - The width and height of the texture. Defaults to 256.
+For a typical pixel-art model:
 
-## Snap UV Island Bounds to Pixels
-Snaps the corners of each selected UV island's bounding box to the nearest pixel-corners.
+1. Select the mesh faces you want to unwrap.
+2. Run **Pixel Unwrap (Centerline)** for symmetric meshes, or **Pixel Unwrap (Active Edge)** for flat surfaces where a specific edge should define the UV baseline.
+3. If you re-edit the mesh or add islands later, run **Pixel Pack Islands** to re-pack to the pixel grid.
+4. For fine adjustments use **Pixel Move UVs**, **Pixel Scale UVs**, or the snap operators.
 
-- **Texture Size** - The width and height of the texture. Defaults to 256.
+Every operator takes a **Texture Size** (or **Resolution**) parameter that defines the pixel grid. Set it to the resolution of your target texture.
 
-## Smart Follow Quads
-Automatically finds the most suitable quad of each selected uv island, makes it perfectly even and preforms a 'Follow Active Quads' operation using the even face as the target.
+## Operators
 
-- **Edge Length Mode** - The edge-length mode of the Follow Active Quads operation. Defaults to 'Even'.
+### Transform UVs
 
-![pixel-uv-tools-example01.png](https://github.com/Capacap/pixel-uv-tools/blob/main/smart_follow_quads_demo.png)
+**Pixel Move UVs**
 
-## Pack Islands Pixel Margin
-Preforms a "Pack Islands" operation on the UVs of selected faces where the margin is specified in pixels.
+Translates the UVs of selected faces by an integer number of pixels. When invoked without arguments it enters an interactive drag mode where 20 screen-pixels of mouse movement equals one texture pixel. Confirm with LMB or Enter, cancel with RMB or Esc.
 
-- **Texture Size** - The width and height of the texture. Defaults to 256.
-- **Pixel Margin** - The amount of pixels to use as margin around each UV island. Defaults to 2.
-- **UDIM Source** - UDIM Source of the Pack Islands operation. Defaults to 'Closest UDIM'.
-- **Rotate** - Allow or disallow rotation of UV islands. Defaults to True.
-- **Rotation Method** - Rotation method of the Pack Islands operation. Defaults to 'Cardinal'.
-- **Scale** - Allow or disallow scaling of UV islands. Defaults to True.
-- **Merge Overlapping** - Merge Overlapping setting of the Pack Islands operation. Defaults to False.
-- **Lock Pinned Islands** - Lock pinned islands setting of the Pack Islands operation. Defaults to False.
-- **Pin Method** - Pin method of the Pack Islands operation. Defaults to 'All'
-- **Shape Method** - Shape method of the Pack Islands operation. Defaults to 'Bounding Box'
+- *Texture Size*: width and height of the target texture. Default 256.
+- *Delta X*, *Delta Y*: pixels to move on each axis. Default 0.
 
-## Regular Polygon Projection
-Projects the UVs of selected faces over the sides and caps of a regular-polygon cylinder. When set to 4 verticies this projection behaves similarly to 'Cube Projection' but with without the inverted UVs on the back sides.
+**Pixel Scale UVs**
 
-- **Verticies** - The amount of verticies on the regular polygon. Defaults to 4.
-- **Cap Penalty** - Dissuades faces from projecting over the caps of the regular-polygon cylinder. Defaults to 0.
-- **Use Seams** - Create UV islands from edges marked as seams. If disabled seams will be automatically generated based on face normals. Defaults to False.
+Rounds the bounding-box size of the selection to an integer pixel count, then adds a pixel delta on each axis. Scales around the selection centroid.
 
-## Tips and Tricks
+- *Texture Size*: default 256.
+- *Delta X*, *Delta Y*: additional pixels to add to the bounding-box width and height. Default 1.
 
-The reccommended workflow is as follows:
-1. Project the UVs using any method of your choice.
-2. Run 'Pack Islands Pixel Margin' to pack your uv islands.
-3. Run 'Snap UV Island Bounds to Pixels' to make your uv islands align nicely to the pixel grid.
-4. On hard-surface models run 'Snap UVs to Pixels', consider running this operator at double the texture size to preserve smaller uvs that would otherwise get squished.
+### Snap and pack
+
+**Pixel Snap UVs**
+
+Snaps every UV vertex of selected faces to the nearest pixel corner. Best for hard-surface meshes. Tip: run it at twice the target resolution to preserve features smaller than a pixel, then snap again at the real resolution.
+
+- *Texture Size*: default 256.
+
+**Pixel Snap Islands**
+
+For each selected UV island, rounds the bounding box to an even pixel count and centers the box on a pixel corner. Keeps island proportions pixel-perfect without squashing small details.
+
+- *Resolution*: default 256.
+
+**Pixel Pack Islands**
+
+Packs islands, snaps their dimensions to the pixel grid, re-packs to close the gaps created by snapping, then snaps island positions to pixel corners. A drop-in replacement for Blender's Pack Islands when the target is a fixed-resolution texture.
+
+- *Texture Resolution*: default 256.
+- *Pixel Margin*: margin between islands in pixels. Default 2.
+- *UDIM Source*: forwarded to Pack Islands. Default Closest UDIM.
+- *Rotate*, *Scale*, *Merge Overlapping*, *Lock Pinned Islands*, *Pin Method*, *Shape Method*: forwarded to Pack Islands. See Blender's Pack Islands documentation for details.
+
+### Unwrap
+
+**Pixel Unwrap (Active Edge)**
+
+Pins the active edge along the U axis using its 3D length, then runs an angle-based unwrap over the selected faces. Use this when a specific edge should become horizontal in UV space. If no faces are selected, the operator selects faces reachable from the active edge through non-seam edges.
+
+**Pixel Unwrap (Centerline)**
+
+Pins vertices on the `X = 0` plane to a vertical line in UV space, runs an angle-based unwrap on each seam-delimited island, packs the result, and snaps everything to the pixel grid. Designed for symmetric meshes (characters, weapons) where the silhouette's center should land on a texel boundary.
+
+- *Texture Size*: default 256.
+- *Packing Margin*: pixels between islands. Default 2.
+- *Shape Method*: shape metric used by the packing step. Default Bounding Box.
+- *Centerline Adjustment*: `Pixel Corner` places the centerline on a texel boundary, `Pixel Center` offsets by half a pixel so the centerline runs through texel centers. Default Pixel Corner.
+
+### Utility operators
+
+**Pixel Move Islands** and **Pixel Scale Islands** are registered but not shown in the UV menu. They are used internally by Pixel Pack Islands and can be invoked by name through `F3` search if you need them directly.
 
 ---
 
-![pixel-uv-tools-example01](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example01.png)
-![pixel-uv-tools-example02](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example02.png)
+![example 1](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example01.png)
+![example 2](https://github.com/Capacap/pixel-uv-tools/blob/main/pixel-uv-tools-example02.png)
