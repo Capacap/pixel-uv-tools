@@ -26,17 +26,17 @@ if "bpy" in locals():
     importlib.reload(pixel_smart_follow_quads)
 else:
     import bpy
-    from . import pixel_move_uvs
-    from . import pixel_scale_uvs
-    from . import pixel_snap_uvs
-    from . import pixel_move_islands
-    from . import pixel_scale_islands
-    from . import pixel_snap_islands
-    from . import pixel_pack_islands
+    from .operators import pixel_move_uvs
+    from .operators import pixel_scale_uvs
+    from .operators import pixel_snap_uvs
+    from .operators import pixel_move_islands
+    from .operators import pixel_scale_islands
+    from .operators import pixel_snap_islands
+    from .operators import pixel_pack_islands
 
-    from . import pixel_unwrap_active_edge
-    from . import pixel_unwrap_centerline
-    from . import pixel_smart_follow_quads
+    from .operators import pixel_unwrap_active_edge
+    from .operators import pixel_unwrap_centerline
+    from .operators import pixel_smart_follow_quads
 
 import bpy
 

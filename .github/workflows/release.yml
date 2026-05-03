@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify bl_info version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          BL_INFO_VERSION=$(python3 -c "import ast; tree=ast.parse(open('__init__.py').read()); bl=next(n for n in tree.body if isinstance(n,ast.Assign) and n.targets[0].id=='bl_info'); d={k.value:ast.literal_eval(v) for k,v in zip(bl.value.keys,bl.value.values)}; print('.'.join(str(x) for x in d['version']))")
+          echo "Tag version:    $TAG_VERSION"
+          echo "bl_info version: $BL_INFO_VERSION"
+          if [ "$TAG_VERSION" != "$BL_INFO_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match bl_info version $BL_INFO_VERSION"
+            exit 1
+          fi
+
+      - name: Build addon zip
+        run: |
+          STAGE=stage/pixel-uv-tools
+          mkdir -p "$STAGE"
+          cp __init__.py LICENSE README.md "$STAGE/"
+          cp -r operators "$STAGE/"
+          find "$STAGE" -name "__pycache__" -type d -exec rm -rf {} +
+          cd stage
+          zip -r "../pixel-uv-tools-${GITHUB_REF_NAME}.zip" pixel-uv-tools
+          cd ..
+          ls -la pixel-uv-tools-*.zip
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: pixel-uv-tools-*.zip
+          generate_release_notes: true

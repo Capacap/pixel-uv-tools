@@ -4,9 +4,24 @@ A Blender addon for pixel-perfect UV editing. Every operator is reachable from t
 
 ## Installation
 
-1. Download this repository as a zip, or clone it and zip the `pixel_uv_tools` folder.
+Two options:
+
+**From a release zip (recommended for most users)**
+
+1. Download the latest `pixel-uv-tools-vX.Y.zip` from the [Releases page](https://github.com/Capacap/pixel-uv-tools/releases).
 2. In Blender, open `Edit > Preferences > Add-ons > Install from Disk...` and select the zip.
 3. Enable *Pixel UV Tools* in the add-on list.
+
+**From source (for development or to track `main`)**
+
+Clone the repo directly into your Blender `scripts/addons/` directory:
+
+```
+cd <blender-config>/scripts/addons
+git clone https://github.com/Capacap/pixel-uv-tools.git
+```
+
+Then enable *Pixel UV Tools* in `Edit > Preferences > Add-ons`. Pulling the repo updates the addon in place.
 
 Operators appear under `UV > Pixel UV Tools` in both the 3D Viewport (Edit Mode, `U`) and the UV Editor.
 
