@@ -35,6 +35,15 @@ def get_uv_islands(bm, uv_layer, only_selected):
     return islands
 
 
+def pixel_scale_factor(size, pixel):
+    """Factor that scales `size` to the nearest whole number of pixels, at least one.
+    A zero-size (degenerate) axis is left unscaled since no factor can give it area."""
+    if size < 1e-9:
+        return 1.0
+    target_size = max(round(size / pixel), 1) * pixel
+    return target_size / size
+
+
 def scale_uv_bounds_to_pixels(bm, uv_layer, island, resolution):
     """Scale the island so its bounding box dimensions are divisible by the pixel size"""
     faces = [bm.faces[i] for i in island]
@@ -54,11 +63,9 @@ def scale_uv_bounds_to_pixels(bm, uv_layer, island, resolution):
     x_size = max_x - min_x
     y_size = max_y - min_y
 
-    x_target_size = round(x_size / (1.0 / resolution)) * (1.0 / resolution)
-    y_target_size = round(y_size / (1.0 / resolution)) * (1.0 / resolution)
-
-    x_scale = x_target_size / x_size
-    y_scale = y_target_size / y_size
+    pixel = 1.0 / resolution
+    x_scale = pixel_scale_factor(x_size, pixel)
+    y_scale = pixel_scale_factor(y_size, pixel)
     scale = Matrix.LocRotScale(Vector((0.0, 0.0, 0.0)), None, Vector((x_scale, y_scale, 1.0)))
 
     uvx = [l[uv_layer].uv.x for f in faces for l in f.loops]

@@ -4,6 +4,15 @@ from math import inf
 from mathutils import Vector, Matrix
 
 
+def pixel_scale_factor(size, pixel, delta_pixels):
+    """Factor that scales `size` to the nearest whole number of pixels plus a delta, at least one.
+    A zero-size (degenerate) axis is left unscaled since no factor can give it area."""
+    if size < 1e-9:
+        return 1.0
+    target_size = max(round(size / pixel) + delta_pixels, 1) * pixel
+    return target_size / size
+
+
 def main(context, resolution, dx, dy):
     
     # Force face select mode for consistent behavior across selection modes
@@ -36,12 +45,9 @@ def main(context, resolution, dx, dy):
     # Scale the selection to pixel-aligned dimensions plus the pixel delta
     x_size = bmax.x - bmin.x
     y_size = bmax.y - bmin.y
-    x_target_size = round(x_size/(1.0/resolution)) * (1.0/resolution)
-    y_target_size = round(y_size/(1.0/resolution)) * (1.0/resolution)
-    x_target_size += dx * (1.0/resolution)
-    y_target_size += dy * (1.0/resolution)
-    x_scale = x_target_size / x_size
-    y_scale = y_target_size / y_size
+    pixel = 1.0/resolution
+    x_scale = pixel_scale_factor(x_size, pixel, dx)
+    y_scale = pixel_scale_factor(y_size, pixel, dy)
     
     # Construct a matrix to scale the uvs
     transformation = Matrix.LocRotScale(Vector((0.0,0.0,0.0)), None, Vector((x_scale,y_scale,1.0)))

@@ -8,6 +8,15 @@ def round_to_nearest_even(number):
     return int(number) if int(number) % 2 == 0 else int(number) + 1
 
 
+def pixel_scale_factor(size, pixel):
+    """Factor that scales `size` to the nearest even number of pixels, at least two.
+    A zero-size (degenerate) axis is left unscaled since no factor can give it area."""
+    if size < 1e-9:
+        return 1.0
+    target_size = max(round_to_nearest_even(size / pixel), 2) * pixel
+    return target_size / size
+
+
 def get_uv_islands(bm):
 
     islands = []
@@ -48,10 +57,9 @@ def snap_uv_island_to_pixels(island_faces, uv_layer, resolution):
 
     x_size = bmax.x - bmin.x
     y_size = bmax.y - bmin.y
-    x_target_size = round_to_nearest_even(x_size / (1.0 / resolution)) * (1.0 / resolution)
-    y_target_size = round_to_nearest_even(y_size / (1.0 / resolution)) * (1.0 / resolution)
-    x_scale = x_target_size / x_size
-    y_scale = y_target_size / y_size
+    pixel = 1.0 / resolution
+    x_scale = pixel_scale_factor(x_size, pixel)
+    y_scale = pixel_scale_factor(y_size, pixel)
 
     px = round(bcenter.x / (1.0 / resolution)) * (1.0 / resolution)
     py = round(bcenter.y / (1.0 / resolution)) * (1.0 / resolution)
