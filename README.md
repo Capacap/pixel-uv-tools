@@ -64,16 +64,18 @@ Snaps every UV vertex of selected faces to the nearest pixel corner. Best for ha
 
 **Pixel Snap Islands**
 
-For each selected UV island, rounds the bounding box to an even pixel count and centers the box on a pixel corner. Keeps island proportions pixel-perfect without squashing small details.
+For each selected UV island, rounds the bounding box to an even pixel count and centers the box on a pixel corner. Keeps island proportions pixel-perfect without squashing small details. Islands smaller than one pixel keep their true proportions: they are scaled uniformly from their larger axis and placed inside a single texel row or column instead of being inflated to the two-pixel minimum.
 
 - *Resolution*: default 256.
+- *Minimum Size*: when above zero, islands collapsed to zero width or height are expanded to at least this many pixels, reconstructed from the mesh's 3D shape where possible. Default 0 (leave collapsed islands untouched).
 
 **Pixel Pack Islands**
 
-Packs islands, snaps their dimensions to the pixel grid, re-packs to close the gaps created by snapping, then snaps island positions to pixel corners. A drop-in replacement for Blender's Pack Islands when the target is a fixed-resolution texture.
+Packs islands, snaps their dimensions to the pixel grid, re-packs to close the gaps created by snapping, then snaps island positions to pixel corners. A drop-in replacement for Blender's Pack Islands when the target is a fixed-resolution texture. Islands smaller than one pixel keep their true proportions: they are scaled uniformly from their larger axis and placed inside a single texel row or column instead of being inflated to a whole pixel count.
 
 - *Texture Resolution*: default 256.
 - *Pixel Margin*: margin between islands in pixels. Default 2.
+- *Minimum Island Size*: when above zero, islands are kept at least this many pixels wide and tall, and islands collapsed to zero width or height are expanded, reconstructed from the mesh's 3D shape where possible. Default 0 (leave collapsed islands untouched).
 - *UDIM Source*: forwarded to Pack Islands. Default Closest UDIM.
 - *Rotate*, *Scale*, *Merge Overlapping*, *Lock Pinned Islands*, *Pin Method*, *Shape Method*: forwarded to Pack Islands. See Blender's Pack Islands documentation for details.
 
@@ -89,6 +91,7 @@ Pins vertices on the `X = 0` plane to a vertical line in UV space, runs an angle
 
 - *Texture Size*: default 256.
 - *Packing Margin*: pixels between islands. Default 2.
+- *Minimum Island Size*: when above zero, islands collapsed to zero width or height are expanded to at least this many pixels, reconstructed from the mesh's 3D shape where possible. Default 0.
 - *Shape Method*: shape metric used by the packing step. Default Bounding Box.
 - *Centerline Adjustment*: `Pixel Corner` places the centerline on a texel boundary, `Pixel Center` offsets by half a pixel so the centerline runs through texel centers. Default Pixel Corner.
 

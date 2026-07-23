@@ -2,6 +2,8 @@ import bpy
 import bmesh
 from mathutils import Vector
 
+from .pixel_scale_islands import count_subpixel_islands
+
 
 def place_and_pin_centerline_uvs(faces, uv_layer):
 
@@ -170,7 +172,19 @@ def main(context, operator):
     # Scale, pack, and snap island bounds to the pixel grid
     bpy.ops.uv.average_islands_scale(scale_uv=False, shear=False)
     bpy.ops.uv.pack_islands(udim_source='CLOSEST_UDIM', rotate=True, rotate_method='CARDINAL', scale=True, merge_overlap=False, margin_method='FRACTION', margin=margin / img_size, pin=False, pin_method='LOCKED', shape_method=shape_method)
-    bpy.ops.uv.pixel_snap_islands(resolution=img_size)
+
+    # Warn when the packed density is too low for pixel snapping to preserve proportions
+    bm = bmesh.from_edit_mesh(obj.data)
+    bm.faces.ensure_lookup_table()
+    uv_layer = bm.loops.layers.uv.verify()
+    total, subpixel = count_subpixel_islands(bm, uv_layer, img_size)
+    if subpixel:
+        operator.report({'WARNING'}, f"{subpixel} of {total} UV islands are under 1 pixel at "
+                                     f"Texture Size {img_size}; they keep their proportions "
+                                     f"but will render as flat single-texel colors. Increase "
+                                     f"Texture Size for paintable detail")
+
+    bpy.ops.uv.pixel_snap_islands(resolution=img_size, min_size=operator.min_size)
 
     # Snap centerlines to pixel boundaries as the final step so pixel_snap_islands cannot undo the alignment
     bpy.ops.mesh.hide(unselected=True)
@@ -215,6 +229,12 @@ class PixelUnwrapCenterlineOperator(bpy.types.Operator):
 
     img_size: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     margin: bpy.props.IntProperty(name="Packing Margin", description="Margin around UV Islands in pixels", default=2, min=0)
+    min_size: bpy.props.IntProperty(
+        name="Minimum Island Size",
+        description="When above zero, collapsed (zero width or height) islands are expanded to at "
+                    "least this many pixels using the mesh's 3D shape where possible. Zero leaves "
+                    "collapsed islands untouched",
+        default=0, min=0)
     shape_method: bpy.props.EnumProperty(items=[
         ('CONCAVE', 'Exact Shape', 'Uses exact geometry'),
         ('CONVEX', 'Boundary Shape', 'Uses convex hull'),

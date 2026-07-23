@@ -1,4 +1,7 @@
 import bpy
+import bmesh
+
+from .pixel_scale_islands import count_subpixel_islands
 
 
 class PixelPackIslandsOperator(bpy.types.Operator):
@@ -10,6 +13,13 @@ class PixelPackIslandsOperator(bpy.types.Operator):
     resolution: bpy.props.IntProperty(name="Texture Resolution", description="Resolution of target texure", default=256)
 
     margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2)
+
+    min_size: bpy.props.IntProperty(
+        name="Minimum Island Size",
+        description="When above zero, islands are kept at least this many pixels wide and tall, "
+                    "expanding collapsed (zero width or height) islands using the mesh's 3D shape "
+                    "where possible. Zero leaves collapsed islands untouched",
+        default=0, min=0)
 
     udim_source: bpy.props.EnumProperty(items=[
         ('CLOSEST_UDIM', 'Closest UDIM', 'Pack islands to closest UDIM'),
@@ -65,8 +75,19 @@ class PixelPackIslandsOperator(bpy.types.Operator):
         # Initial pack with user settings
         bpy.ops.uv.pack_islands(rotate=self.rotate, scale=self.scale, **pack_args)
 
+        # Warn when the packed density is too low for pixel snapping to preserve proportions
+        bm = bmesh.from_edit_mesh(context.edit_object.data)
+        bm.faces.ensure_lookup_table()
+        uv_layer = bm.loops.layers.uv.verify()
+        total, subpixel = count_subpixel_islands(bm, uv_layer, self.resolution)
+        if subpixel:
+            self.report({'WARNING'}, f"{subpixel} of {total} UV islands are under 1 pixel at "
+                                     f"resolution {self.resolution}; they keep their proportions "
+                                     f"but will render as flat single-texel colors. Increase the "
+                                     f"resolution for paintable detail")
+
         # Snap island dimensions to pixel grid
-        bpy.ops.uv.pixel_scale_islands(resolution=self.resolution)
+        bpy.ops.uv.pixel_scale_islands(resolution=self.resolution, min_size=self.min_size)
 
         # Re-pack without rotate/scale to tighten gaps after snapping
         bpy.ops.uv.pack_islands(rotate=False, scale=False, **pack_args)

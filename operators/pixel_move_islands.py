@@ -1,5 +1,6 @@
 import bpy
 import bmesh
+from math import inf
 from mathutils import Vector, Matrix
 
 
@@ -36,23 +37,31 @@ def get_uv_islands(bm, uv_layer, only_selected):
 
 
 def move_island_to_pixels(bm, uv_layer, island, resolution):
-    """Moves the minimum point of the islands bounding box to the nearest pixel corner"""
+    """Moves the minimum point of the islands bounding box to the nearest pixel corner.
+    Zero-size axes are centered inside a texel instead, since a line exactly on a
+    pixel boundary samples ambiguously."""
     faces = [bm.faces[i] for i in island]
+    pixel = 1.0 / resolution
 
-    min_x = 1.0
-    min_y = 1.0
+    bmin = [inf, inf]
+    bmax = [-inf, -inf]
     for f in faces:
         for l in f.loops:
             uv = l[uv_layer].uv
-            min_x = min(min_x, uv.x)
-            min_y = min(min_y, uv.y)
+            for axis in range(2):
+                bmin[axis] = min(bmin[axis], uv[axis])
+                bmax[axis] = max(bmax[axis], uv[axis])
 
-    min_x_rounded = round(min_x / (1.0 / resolution)) * (1.0 / resolution)
-    min_y_rounded = round(min_y / (1.0 / resolution)) * (1.0 / resolution)
+    delta = [0.0, 0.0]
+    for axis in range(2):
+        size = bmax[axis] - bmin[axis]
+        if size < 1e-9:
+            center = (bmin[axis] + bmax[axis]) / 2
+            delta[axis] = (round(center * resolution - 0.5) + 0.5) * pixel - center
+        else:
+            delta[axis] = round(bmin[axis] * resolution) * pixel - bmin[axis]
 
-    delta_x = min_x_rounded - min_x
-    delta_y = min_y_rounded - min_y
-    translation = Matrix.LocRotScale(Vector((delta_x, delta_y, 0.0)), None, Vector((1.0, 1.0, 1.0)))
+    translation = Matrix.LocRotScale(Vector((delta[0], delta[1], 0.0)), None, Vector((1.0, 1.0, 1.0)))
 
     for f in faces:
         for l in f.loops:
