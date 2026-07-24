@@ -9,6 +9,11 @@ class PixelUnwrapOperator(bpy.types.Operator):
 
     img_size: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     margin: bpy.props.IntProperty(name="Packing Margin", description="Margin around UV Islands in pixels", default=2, min=0)
+    shape_method: bpy.props.EnumProperty(items=[
+        ('CONCAVE', 'Exact Shape', 'Uses exact geometry'),
+        ('CONVEX', 'Boundary Shape', 'Uses convex hull'),
+        ('AABB', 'Bounding Box', 'Uses bounding boxes')
+    ], name="Shape Method", default='AABB')
 
     @classmethod
     def poll(cls, context):
@@ -23,6 +28,6 @@ class PixelUnwrapOperator(bpy.types.Operator):
         bpy.ops.uv.average_islands_scale(scale_uv=False, shear=False)
 
         # Pack, snap island sizes and positions to the pixel grid
-        bpy.ops.uv.pixel_pack_islands(resolution=self.img_size, margin=self.margin)
+        bpy.ops.uv.pixel_pack_islands(resolution=self.img_size, margin=self.margin, shape_method=self.shape_method)
 
         return {'FINISHED'}

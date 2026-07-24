@@ -58,15 +58,20 @@ class PixelPackIslandsOperator(bpy.types.Operator):
             udim_source=self.udim_source,
             rotate_method='CARDINAL',
             merge_overlap=self.merge_overlap,
-            margin_method='FRACTION',
             margin=margin,
             pin=self.pin,
             pin_method=self.pin_method,
             shape_method=self.shape_method,
         )
 
+        # FRACTION margins are only exact when the packer is allowed to rescale; in a
+        # fixed-scale pack they come out several times too wide and spill islands into
+        # neighboring UDIM tiles. Fixed-scale packs get the raw ADD margin instead,
+        # which is exact when nothing is rescaled
+        initial_margin_method = 'FRACTION' if self.scale else 'ADD'
+
         # Initial pack with user settings
-        bpy.ops.uv.pack_islands(rotate=self.rotate, scale=self.scale, **pack_args)
+        bpy.ops.uv.pack_islands(rotate=self.rotate, scale=self.scale, margin_method=initial_margin_method, **pack_args)
 
         # Warn when the packed density is too low for pixel snapping to preserve proportions
         bm = bmesh.from_edit_mesh(context.edit_object.data)
@@ -83,7 +88,7 @@ class PixelPackIslandsOperator(bpy.types.Operator):
         bpy.ops.uv.pixel_scale_islands(resolution=self.resolution)
 
         # Re-pack without rotate/scale to tighten gaps after snapping
-        bpy.ops.uv.pack_islands(rotate=False, scale=False, **pack_args)
+        bpy.ops.uv.pack_islands(rotate=False, scale=False, margin_method='ADD', **pack_args)
 
         # Snap island positions to pixel grid
         bpy.ops.uv.pixel_move_islands(resolution=self.resolution)
