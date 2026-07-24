@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Pixel UV Tools",
     "author": "Simon Sorkin",
-    "version": (2, 1, 1),
+    "version": (2, 2, 0),
     "blender": (2, 80, 0),
     "location": "Edit Mode > UV and UV Editor > UV",
     "description": "Tools for creating pixel-perfect UVs.",
