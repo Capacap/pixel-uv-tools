@@ -184,8 +184,8 @@ def main(context, operator):
     if subpixel:
         operator.report({'WARNING'}, f"{subpixel} of {total} UV islands are under 1 pixel at "
                                      f"Texture Size {img_size}; they keep their proportions "
-                                     f"but will render as flat single-texel colors. Increase "
-                                     f"Texture Size for paintable detail")
+                                     f"but will render as solid strips or single-texel colors. "
+                                     f"Increase Texture Size for paintable detail")
 
     bpy.ops.uv.pixel_snap_islands(resolution=img_size)
 

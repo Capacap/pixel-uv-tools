@@ -102,7 +102,7 @@ class PixelMoveIslandsOperator(bpy.types.Operator):
     bl_label = "Pixel Move Islands"
     bl_options = {'REGISTER', 'UNDO'}
 
-    resolution: bpy.props.IntProperty(name="Texture Resolution", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Resolution", default=256, min=1)
 
     @classmethod
     def poll(cls, context):

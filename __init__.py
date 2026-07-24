@@ -12,6 +12,8 @@ bl_info = {
 
 
 if "bpy" in locals():
+    # pixel_scale_islands must stay ahead of pixel_pack_islands and
+    # pixel_unwrap_centerline, which import helpers from it
     import importlib
     importlib.reload(pixel_move_uvs)
     importlib.reload(pixel_scale_uvs)
@@ -21,6 +23,7 @@ if "bpy" in locals():
     importlib.reload(pixel_snap_islands)
     importlib.reload(pixel_pack_islands)
 
+    importlib.reload(pixel_unwrap)
     importlib.reload(pixel_unwrap_active_edge)
     importlib.reload(pixel_unwrap_centerline)
     importlib.reload(pixel_smart_follow_quads)
@@ -34,6 +37,7 @@ else:
     from .operators import pixel_snap_islands
     from .operators import pixel_pack_islands
 
+    from .operators import pixel_unwrap
     from .operators import pixel_unwrap_active_edge
     from .operators import pixel_unwrap_centerline
     from .operators import pixel_smart_follow_quads
@@ -58,6 +62,7 @@ class UV_MT_pixel_uv_tools(bpy.types.Menu):
         layout.operator(pixel_pack_islands.PixelPackIslandsOperator.bl_idname, text=pixel_pack_islands.PixelPackIslandsOperator.bl_label)
         layout.separator()
 
+        layout.operator(pixel_unwrap.PixelUnwrapOperator.bl_idname, text=pixel_unwrap.PixelUnwrapOperator.bl_label)
         layout.operator(pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_idname, text=pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator.bl_label)
         layout.operator(pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_idname, text=pixel_unwrap_centerline.PixelUnwrapCenterlineOperator.bl_label)
         layout.operator(pixel_smart_follow_quads.PixelSmartFollowQuadsOperator.bl_idname, text=pixel_smart_follow_quads.PixelSmartFollowQuadsOperator.bl_label)
@@ -71,6 +76,7 @@ classes = [
     pixel_scale_islands.PixelScaleIslandsOperator,
     pixel_snap_islands.PixelSnapIslandsOperator,
     pixel_pack_islands.PixelPackIslandsOperator,
+    pixel_unwrap.PixelUnwrapOperator,
     pixel_unwrap_active_edge.PixelUnwrapActiveEdgeOperator,
     pixel_unwrap_centerline.PixelUnwrapCenterlineOperator,
     pixel_smart_follow_quads.PixelSmartFollowQuadsOperator,

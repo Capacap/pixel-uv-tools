@@ -8,8 +8,10 @@ def round_to_nearest_even(number):
     return int(number) if int(number) % 2 == 0 else int(number) + 1
 
 
-def pixel_scale_factor(size, pixel):
+def even_pixel_scale_factor(size, pixel):
     """Factor that scales `size` to the nearest even number of pixels, at least two.
+    Unlike pixel_scale_islands.pixel_scale_factor, which rounds to whole pixels, the even
+    count keeps both bounds on pixel corners when the island is centered on one.
     A zero-size (degenerate) axis is left unscaled since no factor can give it area."""
     if size < 1e-9:
         return 1.0
@@ -66,7 +68,7 @@ def snap_uv_island_to_pixels(island_faces, uv_layer, resolution):
         # size, since a fractional multi-pixel axis can never sit on the grid
         major = max(x_size, y_size)
         minor = min(x_size, y_size)
-        factor = pixel_scale_factor(major, pixel) if major >= pixel else 1.0
+        factor = even_pixel_scale_factor(major, pixel) if major >= pixel else 1.0
         minor_scale = factor
         if minor * factor > pixel:
             minor_scale = max(round(minor * factor / pixel), 1) * pixel / minor
@@ -75,8 +77,8 @@ def snap_uv_island_to_pixels(island_faces, uv_layer, resolution):
         else:
             x_scale, y_scale = minor_scale, factor
     else:
-        x_scale = pixel_scale_factor(x_size, pixel)
-        y_scale = pixel_scale_factor(y_size, pixel)
+        x_scale = even_pixel_scale_factor(x_size, pixel)
+        y_scale = even_pixel_scale_factor(y_size, pixel)
 
     def snap_center(value, size):
         # Axes with an even pixel count center on a pixel corner, which lands both

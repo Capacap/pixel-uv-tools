@@ -10,9 +10,9 @@ class PixelPackIslandsOperator(bpy.types.Operator):
     bl_label = "Pixel Pack Islands"
     bl_options = {'REGISTER', 'UNDO'}
 
-    resolution: bpy.props.IntProperty(name="Texture Resolution", description="Resolution of target texure", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Resolution", description="Resolution of target texture", default=256, min=1)
 
-    margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2)
+    margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2, min=0)
 
     udim_source: bpy.props.EnumProperty(items=[
         ('CLOSEST_UDIM', 'Closest UDIM', 'Pack islands to closest UDIM'),
@@ -76,8 +76,8 @@ class PixelPackIslandsOperator(bpy.types.Operator):
         if subpixel:
             self.report({'WARNING'}, f"{subpixel} of {total} UV islands are under 1 pixel at "
                                      f"resolution {self.resolution}; they keep their proportions "
-                                     f"but will render as flat single-texel colors. Increase the "
-                                     f"resolution for paintable detail")
+                                     f"but will render as solid strips or single-texel colors. "
+                                     f"Increase the resolution for paintable detail")
 
         # Snap island dimensions to pixel grid
         bpy.ops.uv.pixel_scale_islands(resolution=self.resolution)

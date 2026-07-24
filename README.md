@@ -30,11 +30,21 @@ Operators appear under `UV > Pixel UV Tools` in both the 3D Viewport (Edit Mode,
 For a typical pixel-art model:
 
 1. Select the mesh faces you want to unwrap.
-2. Run **Pixel Unwrap (Centerline)** for symmetric meshes, or **Pixel Unwrap (Active Edge)** for flat surfaces where a specific edge should define the UV baseline.
+2. Run **Pixel Unwrap**. For symmetric meshes **Pixel Unwrap (Centerline)** gives better results, and **Pixel Unwrap (Active Edge)** suits flat surfaces where a specific edge should define the UV baseline.
 3. If you re-edit the mesh or add islands later, run **Pixel Pack Islands** to re-pack to the pixel grid.
 4. For fine adjustments use **Pixel Move UVs**, **Pixel Scale UVs**, or the snap operators.
 
 Every operator takes a **Texture Size** (or **Resolution**) parameter that defines the pixel grid. Set it to the resolution of your target texture.
+
+## Subpixel islands
+
+At low texture sizes some islands come out smaller than a single pixel. Inflating them to a whole pixel count would turn long thin islands into squares, so every operator follows the same rule instead:
+
+- Islands with a side smaller than one pixel are scaled uniformly from their larger side, so their true proportions survive. Islands smaller than a pixel on both sides keep their exact size.
+- Subpixel sides are placed inside a single texel row or column, so they reveal as few partial pixels as possible.
+- Islands collapsed to zero width or height (a common trick for giving a face a single flat color) are never resized, and are centered inside a texel so they sample one color unambiguously.
+
+Subpixel islands render as solid strips or single-texel colors. Pixel Pack Islands and the unwrap operators report a warning when this happens; increase the texture size if those islands need paintable detail.
 
 ## Operators
 
@@ -64,13 +74,13 @@ Snaps every UV vertex of selected faces to the nearest pixel corner. Best for ha
 
 **Pixel Snap Islands**
 
-For each selected UV island, rounds the bounding box to an even pixel count and centers the box on a pixel corner. Keeps island proportions pixel-perfect without squashing small details. Islands smaller than one pixel keep their true proportions: they are scaled uniformly from their larger axis and placed inside a single texel row or column instead of being inflated to the two-pixel minimum.
+For each selected UV island, rounds the bounding box to an even pixel count and centers the box on a pixel corner. Keeps island proportions pixel-perfect without squashing small details. Islands smaller than one pixel keep their true proportions (see [Subpixel islands](#subpixel-islands)).
 
 - *Resolution*: default 256.
 
 **Pixel Pack Islands**
 
-Packs islands, snaps their dimensions to the pixel grid, re-packs to close the gaps created by snapping, then snaps island positions to pixel corners. A drop-in replacement for Blender's Pack Islands when the target is a fixed-resolution texture. Islands smaller than one pixel keep their true proportions: they are scaled uniformly from their larger axis and placed inside a single texel row or column instead of being inflated to a whole pixel count.
+Packs islands, snaps their dimensions to the pixel grid, re-packs to close the gaps created by snapping, then snaps island positions to pixel corners. A drop-in replacement for Blender's Pack Islands when the target is a fixed-resolution texture. Islands smaller than one pixel keep their true proportions (see [Subpixel islands](#subpixel-islands)).
 
 - *Texture Resolution*: default 256.
 - *Pixel Margin*: margin between islands in pixels. Default 2.
@@ -78,6 +88,13 @@ Packs islands, snaps their dimensions to the pixel grid, re-packs to close the g
 - *Rotate*, *Scale*, *Merge Overlapping*, *Lock Pinned Islands*, *Pin Method*, *Shape Method*: forwarded to Pack Islands. See Blender's Pack Islands documentation for details.
 
 ### Unwrap
+
+**Pixel Unwrap**
+
+Runs Blender's angle-based unwrap over the selected faces (respecting seams and pinned UVs), then packs and snaps the result to the pixel grid with the same pipeline as Pixel Pack Islands. The simplest way to get pixel-aligned UVs on any mesh. Start here if you are unsure which unwrap operator to use.
+
+- *Texture Size*: default 256.
+- *Packing Margin*: pixels between islands. Default 2.
 
 **Pixel Unwrap (Active Edge)**
 

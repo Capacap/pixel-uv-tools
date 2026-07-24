@@ -138,12 +138,12 @@ def main(context, resolution):
 
 
 class PixelScaleIslandsOperator(bpy.types.Operator):
-    """Scale each UV island so that the width and height of its bounding box is divisible by the size of the pixels on a texture of specified size"""
+    """Scale each UV island so that the width and height of its bounding box is divisible by the size of the pixels on a texture of specified size. Islands smaller than one pixel are scaled uniformly so their proportions survive"""
     bl_idname = "uv.pixel_scale_islands"
     bl_label = "Pixel Scale Islands"
     bl_options = {'REGISTER', 'UNDO'}
 
-    resolution: bpy.props.IntProperty(name="Texture Resolution", default=256)
+    resolution: bpy.props.IntProperty(name="Texture Resolution", default=256, min=1)
 
     @classmethod
     def poll(cls, context):
