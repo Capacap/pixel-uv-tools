@@ -14,13 +14,6 @@ class PixelPackIslandsOperator(bpy.types.Operator):
 
     margin: bpy.props.IntProperty(name="Pixel Margin", description="Amount of pixels to use as margin around each island", default=2)
 
-    min_size: bpy.props.IntProperty(
-        name="Minimum Island Size",
-        description="When above zero, islands are kept at least this many pixels wide and tall, "
-                    "expanding collapsed (zero width or height) islands using the mesh's 3D shape "
-                    "where possible. Zero leaves collapsed islands untouched",
-        default=0, min=0)
-
     udim_source: bpy.props.EnumProperty(items=[
         ('CLOSEST_UDIM', 'Closest UDIM', 'Pack islands to closest UDIM'),
         ('ACTIVE_UDIM', 'Active UDIM', 'Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located'),
@@ -87,7 +80,7 @@ class PixelPackIslandsOperator(bpy.types.Operator):
                                      f"resolution for paintable detail")
 
         # Snap island dimensions to pixel grid
-        bpy.ops.uv.pixel_scale_islands(resolution=self.resolution, min_size=self.min_size)
+        bpy.ops.uv.pixel_scale_islands(resolution=self.resolution)
 
         # Re-pack without rotate/scale to tighten gaps after snapping
         bpy.ops.uv.pack_islands(rotate=False, scale=False, **pack_args)

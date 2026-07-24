@@ -69,12 +69,15 @@ def snap_uv_island_centerline_to_pixels(faces, uv_layer, img_size, centerline_ad
     # Get loops of faces in the input set
     loops = [l for f in faces for l in f.loops]
 
-    # Find the UV position of the first centerline vert
-    uv = Vector((0.0, 0.0))
+    # Find the UV position of the first centerline vert. Islands without one have no
+    # centerline to align, so they are left where the pixel snap placed them
+    uv = None
     for l in loops:
         if abs(l.vert.co.x) < 1e-5:
             uv = l[uv_layer].uv
             break
+    if uv is None:
+        return
 
     # Calculate the offset needed to snap the centerline to the pixel grid
     dx = (round(uv.x / (1.0 / img_size)) * (1.0 / img_size)) - uv.x
@@ -184,7 +187,7 @@ def main(context, operator):
                                      f"but will render as flat single-texel colors. Increase "
                                      f"Texture Size for paintable detail")
 
-    bpy.ops.uv.pixel_snap_islands(resolution=img_size, min_size=operator.min_size)
+    bpy.ops.uv.pixel_snap_islands(resolution=img_size)
 
     # Snap centerlines to pixel boundaries as the final step so pixel_snap_islands cannot undo the alignment
     bpy.ops.mesh.hide(unselected=True)
@@ -229,12 +232,6 @@ class PixelUnwrapCenterlineOperator(bpy.types.Operator):
 
     img_size: bpy.props.IntProperty(name="Texture Size", description="Width and height of target texture", default=256, min=1)
     margin: bpy.props.IntProperty(name="Packing Margin", description="Margin around UV Islands in pixels", default=2, min=0)
-    min_size: bpy.props.IntProperty(
-        name="Minimum Island Size",
-        description="When above zero, collapsed (zero width or height) islands are expanded to at "
-                    "least this many pixels using the mesh's 3D shape where possible. Zero leaves "
-                    "collapsed islands untouched",
-        default=0, min=0)
     shape_method: bpy.props.EnumProperty(items=[
         ('CONCAVE', 'Exact Shape', 'Uses exact geometry'),
         ('CONVEX', 'Boundary Shape', 'Uses convex hull'),

@@ -3,8 +3,6 @@ import bmesh
 from math import inf
 from mathutils import Vector, Matrix
 
-from .pixel_scale_islands import expand_collapsed_axis, uv_bounds_size
-
 
 def round_to_nearest_even(number):
     return int(number) if int(number) % 2 == 0 else int(number) + 1
@@ -43,14 +41,7 @@ def get_uv_islands(bm):
     return islands
 
 
-def snap_uv_island_to_pixels(island_faces, uv_layer, resolution, min_size=0):
-
-    if min_size > 0:
-        x_size, y_size = uv_bounds_size(island_faces, uv_layer)
-        if x_size < 1e-9:
-            expand_collapsed_axis(island_faces, uv_layer, 0, min_size / resolution)
-        if y_size < 1e-9:
-            expand_collapsed_axis(island_faces, uv_layer, 1, min_size / resolution)
+def snap_uv_island_to_pixels(island_faces, uv_layer, resolution):
 
     island_loops = [loop for face in island_faces for loop in face.loops]
 
@@ -70,25 +61,37 @@ def snap_uv_island_to_pixels(island_faces, uv_layer, resolution, min_size=0):
 
     if min(x_size, y_size) < pixel:
         # Scale uniformly from the larger axis so subpixel proportions survive instead
-        # of the smaller axis being inflated to the two-pixel floor
+        # of the smaller axis being inflated to the two-pixel floor. If uniform scaling
+        # would push the smaller axis past one pixel it is rounded to its own whole-pixel
+        # size, since a fractional multi-pixel axis can never sit on the grid
         major = max(x_size, y_size)
+        minor = min(x_size, y_size)
         factor = pixel_scale_factor(major, pixel) if major >= pixel else 1.0
-        x_scale = y_scale = factor
+        minor_scale = factor
+        if minor * factor > pixel:
+            minor_scale = max(round(minor * factor / pixel), 1) * pixel / minor
+        if x_size >= y_size:
+            x_scale, y_scale = factor, minor_scale
+        else:
+            x_scale, y_scale = minor_scale, factor
     else:
         x_scale = pixel_scale_factor(x_size, pixel)
         y_scale = pixel_scale_factor(y_size, pixel)
 
     def snap_center(value, size):
-        # Axes of at least a pixel center on a pixel corner. Subpixel axes move their
-        # minimum bound to a pixel corner so the island stays inside a single texel
-        # row or column. Zero axes center inside a texel instead, since a line exactly
-        # on a pixel boundary samples ambiguously
+        # Axes with an even pixel count center on a pixel corner, which lands both
+        # bounds on corners. Any other size (subpixel or an odd whole-pixel count)
+        # moves its minimum bound to a pixel corner instead, so subpixel axes stay
+        # inside a single texel row or column and odd axes stay on the grid. Zero
+        # axes center inside a texel, since a line exactly on a pixel boundary
+        # samples ambiguously
         if size < 1e-9:
             return (round(value * resolution - 0.5) + 0.5) * pixel
-        if size < pixel:
-            corner = round((value - size / 2) * resolution) * pixel
-            return corner + size / 2
-        return round(value * resolution) * pixel
+        half_pixels = size * resolution / 2
+        if abs(half_pixels - round(half_pixels)) < 1e-6:
+            return round(value * resolution) * pixel
+        corner = round((value - size / 2) * resolution) * pixel
+        return corner + size / 2
 
     target = Vector((snap_center(bcenter.x, x_size * x_scale),
                      snap_center(bcenter.y, y_size * y_scale)))
@@ -103,7 +106,7 @@ def snap_uv_island_to_pixels(island_faces, uv_layer, resolution, min_size=0):
         loop[uv_layer].uv = xyz.xy
 
 
-def main(context, resolution, min_size=0):
+def main(context, resolution):
 
     obj = context.object
 
@@ -118,7 +121,7 @@ def main(context, resolution, min_size=0):
     uv_layer = bm.loops.layers.uv.verify()
 
     for island in get_uv_islands(bm):
-        snap_uv_island_to_pixels(island, uv_layer, resolution, min_size)
+        snap_uv_island_to_pixels(island, uv_layer, resolution)
 
     bmesh.update_edit_mesh(obj.data)
 
@@ -136,18 +139,11 @@ class PixelSnapIslandsOperator(bpy.types.Operator):
 
     resolution: bpy.props.IntProperty(name="Resolution", description="Width and height of target texture", default=256, min=1)
 
-    min_size: bpy.props.IntProperty(
-        name="Minimum Size",
-        description="When above zero, collapsed (zero width or height) islands are expanded to at "
-                    "least this many pixels using the mesh's 3D shape where possible, before "
-                    "snapping to the even-pixel grid. Zero leaves collapsed islands untouched",
-        default=0, min=0)
-
     @classmethod
     def poll(cls, context):
         obj = context.active_object
         return obj and obj.type == 'MESH' and obj.mode == 'EDIT'
 
     def execute(self, context):
-        main(context, self.resolution, self.min_size)
+        main(context, self.resolution)
         return {'FINISHED'}
